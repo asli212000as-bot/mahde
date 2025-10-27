@@ -1,0 +1,252 @@
+/*
+FlowerShop_MVP.jsx
+A single-file React + Tailwind starter for a flowers e-commerce MVP with AI placeholders.
+Instructions:
+1. Create a Next.js project (or CRA) and install Tailwind.
+   - Next.js: npx create-next-app@latest
+   - Tailwind: follow official Tailwind + Next.js setup
+2. Save this file as /components/FlowerShopMVP.jsx and import it into a page (e.g., pages/index.js)
+3. Replace placeholder images and connect real APIs for payments, backend, and AI endpoints.
+
+What this file provides (MVP):
+- Home product grid
+- Product detail modal with customization
+- Cart and simple checkout form (mock)
+- Simple AI "Recommend" button that calls a placeholder endpoint /api/ai/recommend
+- Admin link placeholder
+
+TODO: integrate backend (products, orders), payment gateway (Stripe), image generation API (Stable Diffusion / OpenAI Image API), and vector DB for recommendations.
+*/
+
+import React, { useState } from 'react';
+
+const SAMPLE_PRODUCTS = [
+  {
+    id: 'p1',
+    name: 'باقة الحب الكلاسيكية',
+    price: 25000,
+    occasion: 'حب',
+    colors: ['أحمر', 'أبيض'],
+    description: 'باقة ورد حمراء كلاسيكية مع تغليف أنيق. مناسبة للمناسبات الرومانسية.',
+    image: 'https://images.unsplash.com/photo-1511988617509-a57c8a288659?auto=format&fit=crop&w=800&q=60'
+  },
+  {
+    id: 'p2',
+    name: 'باقة الأصدقاء',
+    price: 18000,
+    occasion: 'تهنئة',
+    colors: ['زهري', 'أصفر'],
+    description: 'باقة مشرقة ومبهجة مثالية للمناسبات السعيدة.',
+    image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=60'
+  },
+  {
+    id: 'p3',
+    name: 'باقة التهنئة',
+    price: 30000,
+    occasion: 'تهنئة',
+    colors: ['أبيض', 'أخضر'],
+    description: 'باقة فاخرة مع ورود مختارة بعناية.',
+    image: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=60'
+  }
+];
+
+function currencyFormat(n) {
+  return n.toLocaleString('ar-EG');
+}
+
+export default function FlowerShopMVP() {
+  const [products] = useState(SAMPLE_PRODUCTS);
+  const [cart, setCart] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [customer, setCustomer] = useState({ name: '', phone: '', address: '', date: '' });
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+
+  function addToCart(product, qty = 1, options = {}) {
+    setCart(prev => {
+      const found = prev.find(i => i.product.id === product.id && JSON.stringify(i.options) === JSON.stringify(options));
+      if (found) return prev.map(i => i === found ? { ...i, qty: i.qty + qty } : i);
+      return [...prev, { product, qty, options }];
+    });
+  }
+
+  function removeFromCart(idx) {
+    setCart(prev => prev.filter((_, i) => i !== idx));
+  }
+
+  function total() {
+    return cart.reduce((s, it) => s + it.qty * it.product.price, 0);
+  }
+
+  async function handleAiRecommend(productId) {
+    setAiLoading(true);
+    setAiSuggestions([]);
+    try {
+      // Placeholder: call your real AI backend here
+      // Example: POST /api/ai/recommend { productId }
+      await new Promise(r => setTimeout(r, 800));
+      // Fake suggestion logic: pick other products
+      const sug = products.filter(p => p.id !== productId).slice(0,2);
+      setAiSuggestions(sug);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  function checkoutMock(e) {
+    e.preventDefault();
+    // In real app: call backend /api/checkout -> create order, process payment
+    alert('تم إنشاء طلب (نموذج) — بيانات الدفع غير مفعلة في هذا النموذج.');
+    setCart([]);
+    setShowCheckout(false);
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-800 p-4 font-sans">
+      <header className="max-w-5xl mx-auto flex items-center justify-between py-4">
+        <h1 className="text-2xl font-bold">متجر باقات الورد AI</h1>
+        <div className="flex items-center gap-4">
+          <a className="text-sm underline" href="#admin">لوحة الإدارة</a>
+          <button className="bg-pink-600 text-white px-3 py-1 rounded" onClick={() => setShowCheckout(true)}>عربة ({cart.length})</button>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section className="md:col-span-2">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold">الباقات المتاحة</h2>
+            <div className="text-sm">تصفّح واختر باقتك — دعم توصيات AI موجود لكل منتج</div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {products.map(p => (
+              <article key={p.id} className="bg-white rounded shadow p-3 flex gap-3">
+                <img src={p.image} alt={p.name} className="w-28 h-28 object-cover rounded" />
+                <div className="flex-1">
+                  <h3 className="font-semibold">{p.name}</h3>
+                  <p className="text-sm text-gray-600">{p.description}</p>
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="text-lg font-bold">{currencyFormat(p.price)} د.ع</div>
+                    <div className="flex gap-2">
+                      <button className="px-2 py-1 border rounded text-sm" onClick={() => { setSelected(p); }}>عرض</button>
+                      <button className="px-2 py-1 bg-green-600 text-white rounded text-sm" onClick={() => addToCart(p)}>أضف للسلة</button>
+                      <button className="px-2 py-1 border rounded text-sm" onClick={() => handleAiRecommend(p.id)}>
+                        {aiLoading ? '...' : 'اقتراحات AI'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {aiSuggestions.length > 0 && aiSuggestions.find(s => s.id !== p.id) && (
+                    <div className="mt-2 text-xs text-gray-700 bg-yellow-50 p-2 rounded">
+                      اقتراحات لمنتجات مشابهة: {aiSuggestions.map(s => s.name).join(' — ')}
+                    </div>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <aside className="bg-white rounded shadow p-4">
+          <h3 className="font-semibold">عربة التسوق</h3>
+          {cart.length === 0 ? (
+            <div className="text-sm text-gray-600 mt-3">سلة فارغة</div>
+          ) : (
+            <div className="mt-3 space-y-2">
+              {cart.map((it, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">{it.product.name}</div>
+                    <div className="text-xs text-gray-600">{it.qty} × {currencyFormat(it.product.price)} د.ع</div>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <div className="font-semibold">{currencyFormat(it.qty * it.product.price)} د.ع</div>
+                    <button className="text-xs text-red-600 mt-1" onClick={() => removeFromCart(idx)}>إزالة</button>
+                  </div>
+                </div>
+              ))}
+
+              <div className="border-t pt-2 mt-2 flex items-center justify-between">
+                <div className="font-semibold">الإجمالي</div>
+                <div className="font-bold">{currencyFormat(total())} د.ع</div>
+              </div>
+
+              <div className="mt-3">
+                <button className="w-full bg-pink-600 text-white py-2 rounded" onClick={() => setShowCheckout(true)}>تابع للدفع</button>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 text-xs text-gray-500">ملاحظة: هذا نموذج تجريبي — ربط بوابة الدفع غير مفعل.</div>
+        </aside>
+      </main>
+
+      {/* Product modal */}
+      {selected && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4">
+          <div className="bg-white rounded shadow max-w-2xl w-full p-4">
+            <div className="flex justify-between items-start">
+              <h3 className="text-lg font-semibold">{selected.name}</h3>
+              <button onClick={() => setSelected(null)} className="text-gray-600">إغلاق</button>
+            </div>
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <img src={selected.image} alt={selected.name} className="w-full h-64 object-cover rounded" />
+              <div>
+                <p className="text-gray-700">{selected.description}</p>
+                <div className="mt-3">السعر: <span className="font-bold">{currencyFormat(selected.price)} د.ع</span></div>
+
+                <div className="mt-3">
+                  <label className="block text-sm">اختر اللون (تخصيص)</label>
+                  <select className="mt-1 border rounded p-1 w-full">
+                    {selected.colors.map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  <button className="bg-green-600 text-white px-3 py-1 rounded" onClick={() => { addToCart(selected); setSelected(null); }}>أضف للسلة</button>
+                  <button className="px-3 py-1 border rounded" onClick={() => handleAiRecommend(selected.id)}>اطلب اقتراحات AI</button>
+                </div>
+
+                <div className="mt-4 text-xs text-gray-500">يمكنك ربط زر الاقتراحات بخدمة AI تقدم توصيات أو صور مولّدة.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Checkout modal */}
+      {showCheckout && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4">
+          <form onSubmit={checkoutMock} className="bg-white rounded shadow max-w-xl w-full p-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">الدفع وإنشاء الطلب</h3>
+              <button type="button" onClick={() => setShowCheckout(false)} className="text-gray-600">إغلاق</button>
+            </div>
+
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input required placeholder="الاسم" value={customer.name} onChange={e => setCustomer({...customer, name: e.target.value})} className="border rounded p-2" />
+              <input required placeholder="رقم الهاتف" value={customer.phone} onChange={e => setCustomer({...customer, phone: e.target.value})} className="border rounded p-2" />
+              <input required placeholder="العنوان" value={customer.address} onChange={e => setCustomer({...customer, address: e.target.value})} className="border rounded p-2 sm:col-span-2" />
+              <input type="date" required value={customer.date} onChange={e => setCustomer({...customer, date: e.target.value})} className="border rounded p-2" />
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <div>الإجمالي: <span className="font-bold">{currencyFormat(total())} د.ع</span></div>
+              <div className="text-sm text-gray-500">الدفع سيتم عبر بوابة خارجية (Stripe وغيره) — غير مفعّل هنا.</div>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <button type="submit" className="bg-pink-600 text-white px-4 py-2 rounded">أرسل الطلب</button>
+              <button type="button" className="px-4 py-2 border rounded" onClick={() => { setShowCheckout(false); }}>عودة</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <footer className="max-w-5xl mx-auto text-center text-xs text-gray-500 py-6">تم إنشاء هذا النموذج بواسطة ChatGPT — ربط الأنظمة الخارجية والـAI يحتاج إعدادات إضافية.</footer>
+    </div>
+  );
+}
