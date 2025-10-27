@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>متجر باقات الورد بالذكاء الاصطناعي</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <header class="max-w-5xl mx-auto flex items-center justify-between p-4">
+    <h1 class="text-2xl font-bold">🌸 متجر باقات الورد AI</h1>
+    <button id="cartBtn" class="bg-pink-600 text-white px-3 py-1 rounded">عربة (<span id="cartCount">0</span>)</button>
+  </header>
+
+  <main class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
+    <section class="md:col-span-2">
+      <h2 class="text-xl font-semibold mb-4">الباقات المتاحة</h2>
+      <div id="products" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+    </section>
+
+    <aside class="bg-white rounded shadow p-4">
+      <h3 class="font-semibold">عربة التسوق</h3>
+      <div id="cartItems" class="mt-3 text-sm text-gray-600">سلة فارغة</div>
+      <div class="border-t mt-3 pt-2 flex justify-between text-sm">
+        <span>الإجمالي:</span>
+        <span id="total">0 د.ع</span>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="text-center text-xs text-gray-500 py-6">
+    تم الإنشاء بواسطة ChatGPT — نموذج بسيط للتجربة.
+  </footer>
+
+  <script>
+    const products = [
+      {id:'p1', name:'باقة الحب الكلاسيكية', price:25000, desc:'باقة ورد حمراء كلاسيكية مع تغليف أنيق.', img:'https://images.unsplash.com/photo-1511988617509-a57c8a288659?auto=format&fit=crop&w=800&q=60'},
+      {id:'p2', name:'باقة الأصدقاء', price:18000, desc:'باقة مشرقة ومبهجة مثالية للمناسبات السعيدة.', img:'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=60'},
+      {id:'p3', name:'باقة التهنئة', price:30000, desc:'باقة فاخرة مع ورود مختارة بعناية.', img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=60'}
+    ];
+
+    const cart = [];
+    const productsDiv = document.getElementById('products');
+    const cartItems = document.getElementById('cartItems');
+    const totalEl = document.getElementById('total');
+    const cartCount = document.getElementById('cartCount');
+
+    function renderProducts() {
+      productsDiv.innerHTML = '';
+      products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'bg-white p-3 rounded shadow flex flex-col';
+        card.innerHTML = `
+          <img src='${p.img}' alt='${p.name}' class='h-40 w-full object-cover rounded mb-2'>
+          <h3 class='font-semibold'>${p.name}</h3>
+          <p class='text-sm text-gray-600 mb-2'>${p.desc}</p>
+          <div class='flex items-center justify-between'>
+            <span class='font-bold text-pink-700'>${p.price.toLocaleString()} د.ع</span>
+            <button class='bg-green-600 text-white text-sm px-2 py-1 rounded' onclick='addToCart("${p.id}")'>أضف</button>
+          </div>
+          <button class='mt-2 text-xs underline text-gray-500' onclick='aiRecommend("${p.id}")'>اقتراحات AI</button>
+          <div id='ai-${p.id}' class='text-xs text-gray-700 mt-1'></div>
+        `;
+        productsDiv.appendChild(card);
+      });
+    }
+
+    function addToCart(id) {
+      const p = products.find(x => x.id === id);
+      const existing = cart.find(i => i.id === id);
+      if (existing) existing.qty++;
+      else cart.push({...p, qty:1});
+      updateCart();
+    }
+
+    function updateCart() {
+      cartCount.textContent = cart.length;
+      if (cart.length === 0) {
+        cartItems.textContent = 'سلة فارغة';
+        totalEl.textContent = '0 د.ع';
+        return;
+      }
+      cartItems.innerHTML = '';
+      let total = 0;
+      cart.forEach((item, i) => {
+        total += item.price * item.qty;
+        const row = document.createElement('div');
+        row.className = 'flex justify-between mb-1';
+        row.innerHTML = `
+          <span>${item.name} × ${item.qty}</span>
+          <span>${(item.price * item.qty).toLocaleString()} د.ع <button class='text-red-600 text-xs ml-1' onclick='removeItem(${i})'>x</button></span>
+        `;
+        cartItems.appendChild(row);
+      });
+      totalEl.textContent = total.toLocaleString() + ' د.ع';
+    }
+
+    function removeItem(i){
+      cart.splice(i,1);
+      updateCart();
+    }
+
+    async function aiRecommend(id){
+      const div = document.getElementById('ai-'+id);
+      div.textContent = 'جاري التحليل...';
+      await new Promise(r=>setTimeout(r,1000));
+      const others = products.filter(p=>p.id!==id).map(p=>p.name).join(' - ');
+      div.textContent = 'اقتراحات مشابهة: ' + others;
+    }
+
+    renderProducts();
+  </script>
+</body>
+</html>
